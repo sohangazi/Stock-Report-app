@@ -79,8 +79,8 @@
         </div>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
           <div class="absolute right-4 top-4 bg-amber-50 text-amber-600 p-3 rounded-xl font-bold text-lg">⏳</div>
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">আনডেলিভারি (পলি)</p>
-          <h3 id="card-total-undelivered" class="text-3xl font-black text-slate-900 mt-2">0</h3>
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">মোট আনডেলিভারি (পলি)</p>
+          <h3 id="card-total-undelivered" class="text-3xl font-black text-amber-600 mt-2">0</h3>
         </div>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
           <div class="absolute right-4 top-4 bg-purple-50 text-purple-600 p-3 rounded-xl font-bold text-lg">💰</div>
@@ -98,7 +98,7 @@
           </button>
         </div>
 
-        <form id="stockForm" onsubmit="addStockItem(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4 items-end">
+        <form id="stockForm" onsubmit="addStockItem(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
           <div>
             <label class="block text-xs font-semibold text-slate-500 mb-1">তারিখ</label>
             <input type="date" id="date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -110,30 +110,54 @@
             </select>
             <p class="text-xs font-semibold text-blue-600 mt-1" id="displayUnitPrice">দর: ৳ 0</p>
           </div>
-          <!-- Stock In Inputs: Box & Poly -->
-          <div class="col-span-1 sm:col-span-2 grid grid-cols-2 gap-2 bg-blue-50/50 p-2 rounded-xl border border-blue-100">
-            <div>
-              <label class="block text-[10px] font-bold uppercase text-blue-600 mb-1">স্টক ইন (বস্তা)</label>
-              <input type="number" id="inBox" min="0" value="0" class="w-full bg-white border border-blue-200 rounded-lg px-2 py-2 text-sm focus:outline-none">
-            </div>
-            <div>
-              <label class="block text-[10px] font-bold uppercase text-blue-600 mb-1">স্টক ইন (পলি)</label>
-              <input type="number" id="inPoly" min="0" value="0" class="w-full bg-white border border-blue-200 rounded-lg px-2 py-2 text-sm focus:outline-none">
-            </div>
-          </div>
-          <!-- Stock Out Inputs: Box & Poly -->
-          <div class="col-span-1 sm:col-span-2 grid grid-cols-2 gap-2 bg-emerald-50/50 p-2 rounded-xl border border-emerald-100">
-            <div>
-              <label class="block text-[10px] font-bold uppercase text-emerald-600 mb-1">স্টক আউট (বস্তা)</label>
-              <input type="number" id="outBox" min="0" value="0" class="w-full bg-white border border-emerald-200 rounded-lg px-2 py-2 text-sm focus:outline-none">
-            </div>
-            <div>
-              <label class="block text-[10px] font-bold uppercase text-emerald-600 mb-1">স্টক আউট (পলি)</label>
-              <input type="number" id="outPoly" min="0" value="0" class="w-full bg-white border border-emerald-200 rounded-lg px-2 py-2 text-sm focus:outline-none">
+
+          <!-- Stock In Box & Poly -->
+          <div class="bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+            <label class="block text-xs font-bold text-blue-600 mb-1">স্টক ইন</label>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <span class="text-[10px] text-slate-500">বস্তা</span>
+                <input type="number" id="inBox" min="0" value="0" class="w-full bg-white border border-blue-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-500">পলি</span>
+                <input type="number" id="inPoly" min="0" value="0" class="w-full bg-white border border-blue-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
+              </div>
             </div>
           </div>
-          <div>
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-3 rounded-xl text-sm font-semibold shadow-md transition">
+
+          <!-- Stock Out Box & Poly -->
+          <div class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100">
+            <label class="block text-xs font-bold text-emerald-600 mb-1">স্টক আউট</label>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <span class="text-[10px] text-slate-500">বস্তা</span>
+                <input type="number" id="outBox" min="0" value="0" class="w-full bg-white border border-emerald-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-500">পলি</span>
+                <input type="number" id="outPoly" min="0" value="0" class="w-full bg-white border border-emerald-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
+              </div>
+            </div>
+          </div>
+
+          <!-- Undelivered Box & Poly -->
+          <div class="bg-amber-50/50 p-3 rounded-xl border border-amber-100">
+            <label class="block text-xs font-bold text-amber-600 mb-1">আনডেলিভারি</label>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <span class="text-[10px] text-slate-500">বস্তা</span>
+                <input type="number" id="undelivBox" min="0" value="0" class="w-full bg-white border border-amber-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-500">পলি</span>
+                <input type="number" id="undelivPoly" min="0" value="0" class="w-full bg-white border border-amber-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
+              </div>
+            </div>
+          </div>
+
+          <div class="sm:col-span-2 lg:col-span-5">
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl text-sm font-semibold shadow-md transition">
               এন্ট্রি যোগ করুন
             </button>
           </div>
@@ -151,10 +175,10 @@
               <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
                 <th class="p-4 border-b border-slate-100 font-semibold">তারিখ</th>
                 <th class="p-4 border-b border-slate-100 font-semibold">প্রোডাক্টের নাম</th>
-                <th class="p-4 border-b border-slate-100 font-semibold">দর (বস্তা/পলি)</th>
-                <th class="p-4 border-b border-slate-100 font-semibold">ইন (মোট পলি)</th>
-                <th class="p-4 border-b border-slate-100 font-semibold">আউট (মোট পলি)</th>
-                <th class="p-4 border-b border-slate-100 font-semibold">অবশিষ্ট (পলি)</th>
+                <th class="p-4 border-b border-slate-100 font-semibold">ইন (পলি)</th>
+                <th class="p-4 border-b border-slate-100 font-semibold">আউট (পলি)</th>
+                <th class="p-4 border-b border-slate-100 font-semibold">অবশিষ্ট স্টক</th>
+                <th class="p-4 border-b border-slate-100 font-semibold">আনডেলিভারি</th>
                 <th class="p-4 border-b border-slate-100 font-semibold">মোট মূল্য</th>
                 <th class="p-4 border-b border-slate-100 font-semibold text-center">অ্যাকশন</th>
               </tr>
@@ -198,7 +222,7 @@
               <thead class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider sticky top-0">
                 <tr>
                   <th class="p-4 border-b border-slate-100 font-semibold">প্রোডাক্টের নাম</th>
-                  <th class="p-4 border-b border-slate-100 font-semibold">প্যাকেজিং (বস্তা = পলি)</th>
+                  <th class="p-4 border-b border-slate-100 font-semibold">প্যাকেজিং</th>
                   <th class="p-4 border-b border-slate-100 font-semibold">বস্তার দাম</th>
                   <th class="p-4 border-b border-slate-100 font-semibold">প্রতি পলি দাম</th>
                   <th class="p-4 border-b border-slate-100 font-semibold text-right">অ্যাকশন</th>
@@ -433,22 +457,24 @@
       const inPoly = parseInt(document.getElementById('inPoly').value) || 0;
       const outBox = parseInt(document.getElementById('outBox').value) || 0;
       const outPoly = parseInt(document.getElementById('outPoly').value) || 0;
+      const undelivBox = parseInt(document.getElementById('undelivBox').value) || 0;
+      const undelivPoly = parseInt(document.getElementById('undelivPoly').value) || 0;
 
-      // Convert boxes and polys to total poly count
       const totalInPoly = (inBox * found.polyPerBox) + inPoly;
       const totalOutPoly = (outBox * found.polyPerBox) + outPoly;
+      const totalUndelivPoly = (undelivBox * found.polyPerBox) + undelivPoly;
 
       const newItem = {
         date: document.getElementById('date').value,
         productName: productName,
         boxPrice: found.boxPrice,
         polyPerBox: found.polyPerBox,
-        inBox: inBox,
-        inPoly: inPoly,
-        outBox: outBox,
-        outPoly: outPoly,
-        totalInPoly: totalInPoly,
-        totalOutPoly: totalOutPoly
+        inBox, inPoly,
+        outBox, outPoly,
+        undelivBox, undelivPoly,
+        totalInPoly,
+        totalOutPoly,
+        totalUndelivPoly
       };
 
       stockData.push(newItem);
@@ -458,6 +484,8 @@
       document.getElementById('inPoly').value = 0;
       document.getElementById('outBox').value = 0;
       document.getElementById('outPoly').value = 0;
+      document.getElementById('undelivBox').value = 0;
+      document.getElementById('undelivPoly').value = 0;
     }
 
     window.deleteStockItem = function(index) {
@@ -473,25 +501,28 @@
 
       let totalInPolySum = 0;
       let totalOutPolySum = 0;
+      let totalUndelivPolySum = 0;
       let grandTotalValue = 0;
 
       stockData.forEach((item, index) => {
         const remainingPoly = item.totalInPoly - item.totalOutPoly;
         const polyPrice = item.boxPrice / item.polyPerBox;
-        const totalValue = remainingPoly * polyPrice;
+        // Total value includes both remaining stock and undelivered stock value
+        const totalValue = (remainingPoly + item.totalUndelivPoly) * polyPrice;
 
         totalInPolySum += item.totalInPoly;
         totalOutPolySum += item.totalOutPoly;
+        totalUndelivPolySum += item.totalUndelivPoly;
         grandTotalValue += totalValue;
 
         const row = `
           <tr class="hover:bg-slate-50 transition">
             <td class="p-4 text-slate-600">${item.date}</td>
             <td class="p-4 font-bold text-slate-800">${item.productName}</td>
-            <td class="p-4 text-slate-600 text-xs">বস্তা: ৳${item.boxPrice}<br>পলি: ৳${polyPrice.toFixed(2)}</td>
-            <td class="p-4 font-semibold text-blue-600">${item.totalInPoly} পলি<br><span class="text-xs text-slate-400">(${item.inBox} বস্তা, ${item.inPoly} পলি)</span></td>
-            <td class="p-4 font-semibold text-emerald-600">${item.totalOutPoly} পলি<br><span class="text-xs text-slate-400">(${item.outBox} বস্তা, ${item.outPoly} পলি)</span></td>
+            <td class="p-4 font-semibold text-blue-600">${item.totalInPoly} পলি<br><span class="text-[10px] text-slate-400">(${item.inBox} বস্তা, ${item.inPoly} পলি)</span></td>
+            <td class="p-4 font-semibold text-emerald-600">${item.totalOutPoly} পলি<br><span class="text-[10px] text-slate-400">(${item.outBox} বস্তা, ${item.outPoly} পলি)</span></td>
             <td class="p-4 font-bold text-slate-800">${remainingPoly} পলি</td>
+            <td class="p-4 font-semibold text-amber-600">${item.totalUndelivPoly} পলি<br><span class="text-[10px] text-slate-400">(${item.undelivBox} বস্তা, ${item.undelivPoly} পলি)</span></td>
             <td class="p-4 font-bold text-purple-600">৳ ${totalValue.toFixed(2)}</td>
             <td class="p-4 text-center">
               <button onclick="deleteStockItem(${index})" class="text-red-500 hover:text-red-700 font-semibold text-xs">মুছে ফেলুন</button>
@@ -503,7 +534,7 @@
 
       document.getElementById('card-total-in').innerText = totalInPolySum;
       document.getElementById('card-total-out').innerText = totalOutPolySum;
-      document.getElementById('card-total-undelivered').innerText = Math.max(0, totalInPolySum - totalOutPolySum);
+      document.getElementById('card-total-undelivered').innerText = totalUndelivPolySum;
       document.getElementById('card-total-value').innerText = `৳ ${grandTotalValue.toFixed(2)}`;
 
       saveUserData();
@@ -521,18 +552,20 @@
 
       let totalInSum = 0;
       let totalOutSum = 0;
+      let totalUndelivSum = 0;
       let grandValSum = 0;
 
-      const tableColumn = ["Date", "Product", "In (Poly)", "Out (Poly)", "Remaining", "Total Value"];
+      const tableColumn = ["Date", "Product", "In", "Out", "Remaining", "Undeliv", "Total Value"];
       const tableRows = [];
 
       stockData.forEach(item => {
         const remainingPoly = item.totalInPoly - item.totalOutPoly;
         const polyPrice = item.boxPrice / item.polyPerBox;
-        const totalVal = remainingPoly * polyPrice;
+        const totalVal = (remainingPoly + item.totalUndelivPoly) * polyPrice;
 
         totalInSum += item.totalInPoly;
         totalOutSum += item.totalOutPoly;
+        totalUndelivSum += item.totalUndelivPoly;
         grandValSum += totalVal;
 
         tableRows.push([
@@ -541,6 +574,7 @@
           item.totalInPoly,
           item.totalOutPoly,
           remainingPoly,
+          item.totalUndelivPoly,
           `TK ${totalVal.toFixed(2)}`
         ]);
       });
@@ -554,8 +588,8 @@
 
       let finalY = doc.lastAutoTable.finalY || 30;
       doc.setFontSize(11);
-      doc.text(`Total In Poly: ${totalInSum} | Total Out Poly: ${totalOutSum}`, 14, finalY + 10);
-      doc.text(`Grand Total Stock Value: TK ${grandValSum.toFixed(2)}`, 14, finalY + 18);
+      doc.text(`Total In: ${totalInSum} | Total Out: ${totalOutSum} | Total Undelivered: ${totalUndelivSum}`, 14, finalY + 10);
+      doc.text(`Grand Total Stock Value (Including Undelivered): TK ${grandValSum.toFixed(2)}`, 14, finalY + 18);
 
       doc.save(`Stock_Report_${new Date().toISOString().split('T')[0]}.pdf`);
     }
