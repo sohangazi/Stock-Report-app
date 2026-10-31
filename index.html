@@ -81,7 +81,7 @@
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <div>
             <h2 class="text-2xl font-black text-slate-900">বর্তমান স্টক ও মূল্য</h2>
-            <p class="text-sm text-slate-500">আপনার স্টকে থাকা বর্তমান মোট প্রোডাক্ট ও মূল্যের বিবরণ (B/P ফরম্যাটে)</p>
+            <p class="text-sm text-slate-500">স্টক কম থাকলে স্বয়ংক্রিয়ভাবে লাল রঙে হাইলাইট হবে</p>
           </div>
           <button onclick="exportCurrentStockPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm shadow transition flex items-center gap-2">
             📄 পিডিএফ রিপোর্ট
@@ -98,7 +98,7 @@
                   <th class="p-4 border-b font-semibold">মোট আনডেলিভারি</th>
                   <th class="p-4 border-b font-semibold">অবশিষ্ট স্টক</th>
                   <th class="p-4 border-b font-semibold">প্রতি পলি দাম</th>
-                  <th class="p-4 border-b font-semibold">মোট মূল্য (স্টক + আনডেলিভারি)</th>
+                  <th class="p-4 border-b font-semibold">মোট মূল্য</th>
                 </tr>
               </thead>
               <tbody id="currentStockTableBody" class="text-slate-700 text-sm divide-y divide-slate-100"></tbody>
@@ -109,9 +109,12 @@
 
       <!-- 2. STOCK IN PAGE -->
       <div id="page-stockIn" class="space-y-6 hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
-          <h2 class="text-2xl font-black text-slate-900">স্টক ইন এন্ট্রি</h2>
-          <button onclick="exportTransactionPDF('in')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm shadow transition">📄 পিডিএফ রিপোর্ট</button>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <h2 class="text-xl font-black text-slate-900">স্টক ইন</h2>
+            <input type="date" id="filterInDate" onchange="renderTransactionsTable('in')" class="bg-slate-50 border rounded-xl px-3 py-1.5 text-sm font-semibold">
+          </div>
+          <button onclick="exportTransactionPDF('in')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-semibold text-sm shadow transition">📄 পিডিএফ রিপোর্ট</button>
         </div>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <form onsubmit="addTransaction(event, 'in')" class="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
@@ -132,7 +135,7 @@
               <input type="number" id="inPoly" min="0" value="0" class="w-full bg-slate-50 border rounded-xl px-3 py-2 text-sm">
             </div>
             <div>
-              <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-semibold text-sm shadow">স্টক ইন যোগ করুন</button>
+              <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl font-semibold text-sm shadow">যোগ করুন</button>
             </div>
           </form>
         </div>
@@ -146,9 +149,12 @@
 
       <!-- 3. STOCK OUT PAGE -->
       <div id="page-stockOut" class="space-y-6 hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
-          <h2 class="text-2xl font-black text-slate-900">স্টক আউট এন্ট্রি</h2>
-          <button onclick="exportTransactionPDF('out')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm shadow transition">📄 পিডিএফ রিপোর্ট</button>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <h2 class="text-xl font-black text-slate-900">স্টক আউট</h2>
+            <input type="date" id="filterOutDate" onchange="renderTransactionsTable('out')" class="bg-slate-50 border rounded-xl px-3 py-1.5 text-sm font-semibold">
+          </div>
+          <button onclick="exportTransactionPDF('out')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-semibold text-sm shadow transition">📄 পিডিএফ রিপোর্ট</button>
         </div>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <form onsubmit="addTransaction(event, 'out')" class="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
@@ -169,7 +175,7 @@
               <input type="number" id="outPoly" min="0" value="0" class="w-full bg-slate-50 border rounded-xl px-3 py-2 text-sm">
             </div>
             <div>
-              <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-semibold text-sm shadow">স্টক আউট করুন</button>
+              <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-semibold text-sm shadow">আউট করুন</button>
             </div>
           </form>
         </div>
@@ -183,9 +189,12 @@
 
       <!-- 4. UNDELIVERED PAGE -->
       <div id="page-undelivered" class="space-y-6 hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
-          <h2 class="text-2xl font-black text-slate-900">আনডেলিভারি এন্ট্রি</h2>
-          <button onclick="exportTransactionPDF('undeliv')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm shadow transition">📄 পিডিএফ রিপোর্ট</button>
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <h2 class="text-xl font-black text-slate-900">আনডেলিভারি</h2>
+            <input type="date" id="filterUndelivDate" onchange="renderTransactionsTable('undeliv')" class="bg-slate-50 border rounded-xl px-3 py-1.5 text-sm font-semibold">
+          </div>
+          <button onclick="exportTransactionPDF('undeliv')" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl font-semibold text-sm shadow transition">📄 পিডিএফ রিপোর্ট</button>
         </div>
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <form onsubmit="addTransaction(event, 'undeliv')" class="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end">
@@ -206,7 +215,7 @@
               <input type="number" id="undelivPoly" min="0" value="0" class="w-full bg-slate-50 border rounded-xl px-3 py-2 text-sm">
             </div>
             <div>
-              <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2.5 rounded-xl font-semibold text-sm shadow">আনডেলিভারি যোগ করুন</button>
+              <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2.5 rounded-xl font-semibold text-sm shadow">যোগ করুন</button>
             </div>
           </form>
         </div>
@@ -356,6 +365,9 @@
     document.getElementById('inDate').value = todayStr;
     document.getElementById('outDate').value = todayStr;
     document.getElementById('undelivDate').value = todayStr;
+    document.getElementById('filterInDate').value = todayStr;
+    document.getElementById('filterOutDate').value = todayStr;
+    document.getElementById('filterUndelivDate').value = todayStr;
 
     window.switchPage = function(pageId) {
       const pages = ['currentStock', 'stockIn', 'stockOut', 'undelivered', 'productMgmt'];
@@ -466,7 +478,6 @@
         return;
       }
 
-      // Automatically convert total polys into boxes and remaining polys
       const rawTotalPoly = (inputBoxes * prod.polyPerBox) + inputPolys;
       const calculatedBoxes = Math.floor(rawTotalPoly / prod.polyPerBox);
       const calculatedPolys = rawTotalPoly % prod.polyPerBox;
@@ -504,10 +515,11 @@
 
     window.renderTransactionsTable = function(type) {
       const prefix = type === 'undeliv' ? 'Undeliv' : type.charAt(0).toUpperCase() + type.slice(1);
+      const filterDate = document.getElementById(`filter${prefix}Date`).value;
       const tbody = document.getElementById(`table${prefix}Body`);
       tbody.innerHTML = '';
       
-      transactions.filter(t => t.type === type).forEach(t => {
+      transactions.filter(t => t.type === type && t.date === filterDate).forEach(t => {
         const prod = products.find(p => p.name === t.productName);
         const polyPerBox = prod ? prod.polyPerBox : 1;
         const displayQty = formatBP(t.totalPoly, polyPerBox);
@@ -547,15 +559,18 @@
         const displayIn = formatBP(totalIn, prod.polyPerBox);
         const displayOut = formatBP(totalOut, prod.polyPerBox);
         const displayUndeliv = formatBP(totalUndeliv, prod.polyPerBox);
-        const displayRem = formatBP(Math.max(0, remainingStock), prod.polyPerBox);
+        const displayRem = formatBP(remainingStock, prod.polyPerBox);
+
+        // Highlight row if stock drops below 0
+        const rowBg = remainingStock < 0 ? 'bg-red-50 text-red-700 font-bold' : 'hover:bg-slate-50';
 
         tbody.innerHTML += `
-          <tr class="hover:bg-slate-50">
-            <td class="p-4 font-bold text-slate-800">${prod.name}</td>
-            <td class="p-4 text-blue-600 font-semibold">${displayIn}</td>
-            <td class="p-4 text-emerald-600 font-semibold">${displayOut}</td>
-            <td class="p-4 text-amber-600 font-semibold">${displayUndeliv}</td>
-            <td class="p-4 font-bold text-slate-900">${displayRem}</td>
+          <tr class="${rowBg} transition">
+            <td class="p-4 font-bold">${prod.name}</td>
+            <td class="p-4 font-semibold">${displayIn}</td>
+            <td class="p-4 font-semibold">${displayOut}</td>
+            <td class="p-4 font-semibold">${displayUndeliv}</td>
+            <td class="p-4 font-bold">${displayRem} ${remainingStock < 0 ? '(কম স্টক!)' : ''}</td>
             <td class="p-4">৳${polyPrice.toFixed(2)}</td>
             <td class="p-4 font-bold text-purple-600">৳${totalValue.toFixed(2)}</td>
           </tr>
@@ -608,12 +623,15 @@
     }
 
     window.exportTransactionPDF = function(type) {
+      const prefix = type === 'undeliv' ? 'Undeliv' : type.charAt(0).toUpperCase() + type.slice(1);
+      const filterDate = document.getElementById(`filter${prefix}Date`).value;
+
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      doc.text(`${type.toUpperCase()} Stock Report`, 14, 15);
+      doc.text(`${type.toUpperCase()} Stock Report (${filterDate})`, 14, 15);
 
       const rows = [];
-      transactions.filter(t => t.type === type).forEach(t => {
+      transactions.filter(t => t.type === type && t.date === filterDate).forEach(t => {
         const prod = products.find(p => p.name === t.productName);
         const polyPerBox = prod ? prod.polyPerBox : 1;
         rows.push([t.date, t.productName, formatBP(t.totalPoly, polyPerBox)]);
@@ -625,7 +643,7 @@
         startY: 25,
         theme: 'grid'
       });
-      doc.save(`${type}_Report_${todayStr}.pdf`);
+      doc.save(`${type}_Report_${filterDate}.pdf`);
     }
   </script>
 </body>
