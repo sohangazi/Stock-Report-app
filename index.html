@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>প্রোফেশনাল স্টক ও ইনভেন্টরি ম্যানেজমেন্ট সিস্টেম</title>
+  <title>স্মার্ট স্টক ও ইনভেন্টরি ম্যানেজমেন্ট সিস্টেম</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- jsPDF & jsPDF-AutoTable -->
@@ -56,7 +56,7 @@
     <!-- Navigation Tabs -->
     <div class="flex gap-2 border-b border-slate-200 mb-8">
       <button onclick="switchTab('reportTab')" id="btnReportTab" class="py-3 px-6 font-bold text-sm text-blue-600 border-b-2 border-blue-600 transition flex items-center gap-2">
-        📊 স্টক রিপোর্ট ও এন্ট্রি
+        📊 দৈনিক স্টক রিপোর্ট ও এন্ট্রি
       </button>
       <button onclick="switchTab('productTab')" id="btnProductTab" class="py-3 px-6 font-bold text-sm text-slate-400 hover:text-slate-700 transition flex items-center gap-2">
         📦 প্রোডাক্ট ম্যানেজমেন্ট
@@ -65,43 +65,26 @@
 
     <!-- TAB 1: REPORT & STOCK ENTRY -->
     <div id="reportTabContent" class="space-y-8">
-      <!-- Overview Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
-          <div class="absolute right-4 top-4 bg-blue-50 text-blue-600 p-3 rounded-xl font-bold text-lg">📥</div>
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">মোট স্টক ইন (পলি)</p>
-          <h3 id="card-total-in" class="text-3xl font-black text-slate-900 mt-2">0</h3>
+      
+      <!-- Date Filter Bar -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3 w-full md:w-auto">
+          <label class="font-bold text-sm text-slate-700">রিপোর্টের তারিখ নির্বাচন করুন:</label>
+          <input type="date" id="filterDate" onchange="renderTable()" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
-          <div class="absolute right-4 top-4 bg-emerald-50 text-emerald-600 p-3 rounded-xl font-bold text-lg">📤</div>
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">মোট স্টক আউট (পলি)</p>
-          <h3 id="card-total-out" class="text-3xl font-black text-slate-900 mt-2">0</h3>
-        </div>
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
-          <div class="absolute right-4 top-4 bg-amber-50 text-amber-600 p-3 rounded-xl font-bold text-lg">⏳</div>
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">মোট আনডেলিভারি (পলি)</p>
-          <h3 id="card-total-undelivered" class="text-3xl font-black text-amber-600 mt-2">0</h3>
-        </div>
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
-          <div class="absolute right-4 top-4 bg-purple-50 text-purple-600 p-3 rounded-xl font-bold text-lg">💰</div>
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">মোট স্টকের মূল্য (আনডেলিভারি সহ)</p>
-          <h3 id="card-total-value" class="text-2xl font-black text-purple-600 mt-2">৳ 0.00</h3>
-        </div>
+        <button onclick="exportToPDF()" class="w-full md:w-auto bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-lg shadow-red-500/20 transition flex items-center justify-center gap-2">
+          📄 এই দিনের পিডিএফ রিপোর্ট ডাউনলোড
+        </button>
       </div>
 
       <!-- Daily Entry Form Box -->
       <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <h2 class="text-lg font-bold text-slate-800">দৈনিক স্টক এন্ট্রি ফরম</h2>
-          <button onclick="exportToPDF()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-lg shadow-red-500/20 transition flex items-center gap-2">
-            📄 পিডিএফ রিপোর্ট ডাউনলোড
-          </button>
-        </div>
+        <h2 class="text-lg font-bold text-slate-800 mb-6">দৈনিক স্টক এন্ট্রি ফরম (ইন / আউট / আনডেলিভারি)</h2>
 
         <form id="stockForm" onsubmit="addStockItem(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
           <div>
             <label class="block text-xs font-semibold text-slate-500 mb-1">তারিখ</label>
-            <input type="date" id="date" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="date" id="entryDate" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-500 mb-1">প্রোডাক্ট</label>
@@ -110,52 +93,18 @@
             </select>
             <p class="text-xs font-semibold text-blue-600 mt-1" id="displayUnitPrice">দর: ৳ 0</p>
           </div>
-
-          <!-- Stock In Box & Poly -->
-          <div class="bg-blue-50/50 p-3 rounded-xl border border-blue-100">
-            <label class="block text-xs font-bold text-blue-600 mb-1">স্টক ইন</label>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <span class="text-[10px] text-slate-500">বস্তা</span>
-                <input type="number" id="inBox" min="0" value="0" class="w-full bg-white border border-blue-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
-              </div>
-              <div>
-                <span class="text-[10px] text-slate-500">পলি</span>
-                <input type="number" id="inPoly" min="0" value="0" class="w-full bg-white border border-blue-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
-              </div>
-            </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">স্টক ইন (পলি)</label>
+            <input type="number" id="inPoly" min="0" value="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none">
           </div>
-
-          <!-- Stock Out Box & Poly -->
-          <div class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100">
-            <label class="block text-xs font-bold text-emerald-600 mb-1">স্টক আউট</label>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <span class="text-[10px] text-slate-500">বস্তা</span>
-                <input type="number" id="outBox" min="0" value="0" class="w-full bg-white border border-emerald-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
-              </div>
-              <div>
-                <span class="text-[10px] text-slate-500">পলি</span>
-                <input type="number" id="outPoly" min="0" value="0" class="w-full bg-white border border-emerald-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
-              </div>
-            </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">স্টক আউট (পলি)</label>
+            <input type="number" id="outPoly" min="0" value="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none">
           </div>
-
-          <!-- Undelivered Box & Poly -->
-          <div class="bg-amber-50/50 p-3 rounded-xl border border-amber-100">
-            <label class="block text-xs font-bold text-amber-600 mb-1">আনডেলিভারি</label>
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <span class="text-[10px] text-slate-500">বস্তা</span>
-                <input type="number" id="undelivBox" min="0" value="0" class="w-full bg-white border border-amber-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
-              </div>
-              <div>
-                <span class="text-[10px] text-slate-500">পলি</span>
-                <input type="number" id="undelivPoly" min="0" value="0" class="w-full bg-white border border-amber-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none">
-              </div>
-            </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">আনডেলিভারি (পলি)</label>
+            <input type="number" id="undelivPoly" min="0" value="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none">
           </div>
-
           <div class="sm:col-span-2 lg:col-span-5">
             <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl text-sm font-semibold shadow-md transition">
               এন্ট্রি যোগ করুন
@@ -164,21 +113,22 @@
         </form>
       </div>
 
-      <!-- Data Table -->
+      <!-- Data Table for Selected Date -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div class="p-6 border-b border-slate-100">
-          <h2 class="text-lg font-bold text-slate-800">স্টক লেনদেন ও তালিকা</h2>
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+          <h2 class="text-lg font-bold text-slate-800">নির্বাচিত তারিখের স্টক রিপোর্ট</h2>
+          <span id="selectedDateTitle" class="text-sm font-semibold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg"></span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse" id="stockTable">
             <thead>
               <tr class="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider">
-                <th class="p-4 border-b border-slate-100 font-semibold">তারিখ</th>
                 <th class="p-4 border-b border-slate-100 font-semibold">প্রোডাক্টের নাম</th>
-                <th class="p-4 border-b border-slate-100 font-semibold">ইন (পলি)</th>
-                <th class="p-4 border-b border-slate-100 font-semibold">আউট (পলি)</th>
+                <th class="p-4 border-b border-slate-100 font-semibold">আগের স্টক</th>
+                <th class="p-4 border-b border-slate-100 font-semibold">আজ ইন (+)</th>
+                <th class="p-4 border-b border-slate-100 font-semibold">আজ আউট (-)</th>
+                <th class="p-4 border-b border-slate-100 font-semibold">আনডেলিভারি (+)</th>
                 <th class="p-4 border-b border-slate-100 font-semibold">অবশিষ্ট স্টক</th>
-                <th class="p-4 border-b border-slate-100 font-semibold">আনডেলিভারি</th>
                 <th class="p-4 border-b border-slate-100 font-semibold">মোট মূল্য</th>
                 <th class="p-4 border-b border-slate-100 font-semibold text-center">অ্যাকশন</th>
               </tr>
@@ -336,7 +286,9 @@
       }
     }
 
-    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById('entryDate').value = todayStr;
+    document.getElementById('filterDate').value = todayStr;
 
     window.switchTab = function(tabName) {
       const reportTab = document.getElementById('reportTabContent');
@@ -453,39 +405,21 @@
         return;
       }
 
-      const inBox = parseInt(document.getElementById('inBox').value) || 0;
-      const inPoly = parseInt(document.getElementById('inPoly').value) || 0;
-      const outBox = parseInt(document.getElementById('outBox').value) || 0;
-      const outPoly = parseInt(document.getElementById('outPoly').value) || 0;
-      const undelivBox = parseInt(document.getElementById('undelivBox').value) || 0;
-      const undelivPoly = parseInt(document.getElementById('undelivPoly').value) || 0;
-
-      const totalInPoly = (inBox * found.polyPerBox) + inPoly;
-      const totalOutPoly = (outBox * found.polyPerBox) + outPoly;
-      const totalUndelivPoly = (undelivBox * found.polyPerBox) + undelivPoly;
-
       const newItem = {
-        date: document.getElementById('date').value,
+        date: document.getElementById('entryDate').value,
         productName: productName,
-        boxPrice: found.boxPrice,
-        polyPerBox: found.polyPerBox,
-        inBox, inPoly,
-        outBox, outPoly,
-        undelivBox, undelivPoly,
-        totalInPoly,
-        totalOutPoly,
-        totalUndelivPoly
+        inPoly: parseInt(document.getElementById('inPoly').value) || 0,
+        outPoly: parseInt(document.getElementById('outPoly').value) || 0,
+        undelivPoly: parseInt(document.getElementById('undelivPoly').value) || 0
       };
 
       stockData.push(newItem);
       renderTable();
       
-      document.getElementById('inBox').value = 0;
       document.getElementById('inPoly').value = 0;
-      document.getElementById('outBox').value = 0;
       document.getElementById('outPoly').value = 0;
-      document.getElementById('undelivBox').value = 0;
       document.getElementById('undelivPoly').value = 0;
+      alert('স্টক এন্ট্রি সফলভাবে যোগ হয়েছে!');
     }
 
     window.deleteStockItem = function(index) {
@@ -496,51 +430,69 @@
     }
 
     window.renderTable = function() {
+      const selectedDate = document.getElementById('filterDate').value;
+      document.getElementById('selectedDateTitle').innerText = `তারিখ: ${selectedDate}`;
       const tbody = document.getElementById('stockTableBody');
       tbody.innerHTML = '';
 
-      let totalInPolySum = 0;
-      let totalOutPolySum = 0;
-      let totalUndelivPolySum = 0;
-      let grandTotalValue = 0;
+      products.forEach(prod => {
+        // Calculate opening stock (all entries before selected date)
+        let openingStock = 0;
+        stockData.forEach(item => {
+          if (item.productName === prod.name && item.date < selectedDate) {
+            openingStock += (item.inPoly + item.undelivPoly) - item.outPoly;
+          }
+        });
 
-      stockData.forEach((item, index) => {
-        const remainingPoly = item.totalInPoly - item.totalOutPoly;
-        const polyPrice = item.boxPrice / item.polyPerBox;
-        // Total value includes both remaining stock and undelivered stock value
-        const totalValue = (remainingPoly + item.totalUndelivPoly) * polyPrice;
+        // Calculate today's entries (on selected date)
+        let todayIn = 0;
+        let todayOut = 0;
+        let todayUndeliv = 0;
+        let entryIndices = [];
 
-        totalInPolySum += item.totalInPoly;
-        totalOutPolySum += item.totalOutPoly;
-        totalUndelivPolySum += item.totalUndelivPoly;
-        grandTotalValue += totalValue;
+        stockData.forEach((item, index) => {
+          if (item.productName === prod.name && item.date === selectedDate) {
+            todayIn += item.inPoly;
+            todayOut += item.outPoly;
+            todayUndeliv += item.undelivPoly;
+            entryIndices.push(index);
+          }
+        });
+
+        // Final closing stock for selected date = Opening + Today In + Today Undelivered - Today Out
+        const remainingStock = (openingStock + todayIn + todayUndeliv) - todayOut;
+        const polyPrice = prod.boxPrice / prod.polyPerBox;
+        const totalValue = remainingStock * polyPrice;
 
         const row = `
           <tr class="hover:bg-slate-50 transition">
-            <td class="p-4 text-slate-600">${item.date}</td>
-            <td class="p-4 font-bold text-slate-800">${item.productName}</td>
-            <td class="p-4 font-semibold text-blue-600">${item.totalInPoly} পলি<br><span class="text-[10px] text-slate-400">(${item.inBox} বস্তা, ${item.inPoly} পলি)</span></td>
-            <td class="p-4 font-semibold text-emerald-600">${item.totalOutPoly} পলি<br><span class="text-[10px] text-slate-400">(${item.outBox} বস্তা, ${item.outPoly} পলি)</span></td>
-            <td class="p-4 font-bold text-slate-800">${remainingPoly} পলি</td>
-            <td class="p-4 font-semibold text-amber-600">${item.totalUndelivPoly} পলি<br><span class="text-[10px] text-slate-400">(${item.undelivBox} বস্তা, ${item.undelivPoly} পলি)</span></td>
+            <td class="p-4 font-bold text-slate-800">${prod.name}</td>
+            <td class="p-4 font-semibold text-slate-500">${openingStock} পলি</td>
+            <td class="p-4 font-semibold text-blue-600">+${todayIn} পলি</td>
+            <td class="p-4 font-semibold text-emerald-600">-${todayOut} পলি</td>
+            <td class="p-4 font-semibold text-amber-600">+${todayUndeliv} পলি</td>
+            <td class="p-4 font-bold text-slate-900">${remainingStock} পলি</td>
             <td class="p-4 font-bold text-purple-600">৳ ${totalValue.toFixed(2)}</td>
             <td class="p-4 text-center">
-              <button onclick="deleteStockItem(${index})" class="text-red-500 hover:text-red-700 font-semibold text-xs">মুছে ফেলুন</button>
+              ${entryIndices.length > 0 ? `<button onclick="deleteEntriesForDate('${prod.name}', '${selectedDate}')" class="text-red-500 hover:text-red-700 font-semibold text-xs">আজকের এন্ট্রি মুছুন</button>` : `<span class="text-xs text-slate-300">এন্ট্রি নাই</span>`}
             </td>
           </tr>
         `;
         tbody.innerHTML += row;
       });
 
-      document.getElementById('card-total-in').innerText = totalInPolySum;
-      document.getElementById('card-total-out').innerText = totalOutPolySum;
-      document.getElementById('card-total-undelivered').innerText = totalUndelivPolySum;
-      document.getElementById('card-total-value').innerText = `৳ ${grandTotalValue.toFixed(2)}`;
-
       saveUserData();
     }
 
+    window.deleteEntriesForDate = function(prodName, date) {
+      if (confirm(`"${prodName}" এর ${date} তারিখের সকল এন্ট্রি মুছে ফেলতে চান?`)) {
+        stockData = stockData.filter(item => !(item.productName === prodName && item.date === date));
+        renderTable();
+      }
+    }
+
     window.exportToPDF = function() {
+      const selectedDate = document.getElementById('filterDate').value;
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
@@ -548,33 +500,42 @@
       doc.setFontSize(14);
       doc.text("Stock Management Daily Report", 14, 15);
       doc.setFontSize(10);
-      doc.text(`Date: ${new Date().toISOString().split('T')[0]}`, 14, 22);
+      doc.text(`Date: ${selectedDate}`, 14, 22);
 
-      let totalInSum = 0;
-      let totalOutSum = 0;
-      let totalUndelivSum = 0;
-      let grandValSum = 0;
-
-      const tableColumn = ["Date", "Product", "In", "Out", "Remaining", "Undeliv", "Total Value"];
+      const tableColumn = ["Product", "Opening", "In (+)", "Out (-)", "Undeliv (+)", "Remaining", "Total Value"];
       const tableRows = [];
 
-      stockData.forEach(item => {
-        const remainingPoly = item.totalInPoly - item.totalOutPoly;
-        const polyPrice = item.boxPrice / item.polyPerBox;
-        const totalVal = (remainingPoly + item.totalUndelivPoly) * polyPrice;
+      products.forEach(prod => {
+        let openingStock = 0;
+        stockData.forEach(item => {
+          if (item.productName === prod.name && item.date < selectedDate) {
+            openingStock += (item.inPoly + item.undelivPoly) - item.outPoly;
+          }
+        });
 
-        totalInSum += item.totalInPoly;
-        totalOutSum += item.totalOutPoly;
-        totalUndelivSum += item.totalUndelivPoly;
-        grandValSum += totalVal;
+        let todayIn = 0;
+        let todayOut = 0;
+        let todayUndeliv = 0;
+
+        stockData.forEach(item => {
+          if (item.productName === prod.name && item.date === selectedDate) {
+            todayIn += item.inPoly;
+            todayOut += item.outPoly;
+            todayUndeliv += item.undelivPoly;
+          }
+        });
+
+        const remainingStock = (openingStock + todayIn + todayUndeliv) - todayOut;
+        const polyPrice = prod.boxPrice / prod.polyPerBox;
+        const totalVal = remainingStock * polyPrice;
 
         tableRows.push([
-          item.date,
-          item.productName,
-          item.totalInPoly,
-          item.totalOutPoly,
-          remainingPoly,
-          item.totalUndelivPoly,
+          prod.name,
+          openingStock,
+          `+${todayIn}`,
+          `-${todayOut}`,
+          `+${todayUndeliv}`,
+          remainingStock,
           `TK ${totalVal.toFixed(2)}`
         ]);
       });
@@ -586,12 +547,7 @@
         theme: 'grid'
       });
 
-      let finalY = doc.lastAutoTable.finalY || 30;
-      doc.setFontSize(11);
-      doc.text(`Total In: ${totalInSum} | Total Out: ${totalOutSum} | Total Undelivered: ${totalUndelivSum}`, 14, finalY + 10);
-      doc.text(`Grand Total Stock Value (Including Undelivered): TK ${grandValSum.toFixed(2)}`, 14, finalY + 18);
-
-      doc.save(`Stock_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+      doc.save(`Stock_Report_${selectedDate}.pdf`);
     }
   </script>
 </body>
