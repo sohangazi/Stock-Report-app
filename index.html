@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>স্মার্ট ক্লাউড স্টক ম্যানেজমেন্ট সিস্টেম</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- jsPDF & jsPDF-AutoTable -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans p-4 md:p-8">
+
+  <!-- AUTH SECTION (Login / Signup) -->
+  <div id="authContainer" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md mt-20">
+    <h2 id="authTitle" class="text-2xl font-bold text-center text-gray-800 mb-6">লগইন করুন</h2>
+    <form id="authForm" onsubmit="handleAuth(event)" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">জিমেইল (Email)</label>
+        <input type="email" id="authEmail" required class="w-full border rounded px-3 py-2 focus:outline-blue-500">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-600 mb-1">পাসওয়ার্ড (Password)</label>
+        <input type="password" id="authPassword" required class="w-full border rounded px-3 py-2 focus:outline-blue-500">
+      </div>
+      <button type="submit" id="authSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium shadow transition">
+        লগইন
+      </button>
+    </form>
+    <p class="text-center text-sm text-gray-600 mt-4">
+      <span id="authToggleText">একাউন্ট নেই?</span> 
+      <button onclick="toggleAuthMode()" id="authToggleBtn" class="text-blue-600 font-semibold hover:underline">সাইন আপ করুন</button>
+    </p>
+  </div>
+
+  <!-- MAIN APP SECTION (Hidden until logged in) -->
+  <div id="appContainer" class="max-w-6xl mx-auto hidden">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-lg shadow-md mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">স্মার্ট স্টক ও ইনভেন্টরি সিস্টেম</h1>
+        <p class="text-sm text-gray-500">লগইনকৃত ইউজার: <span id="userEmailDisplay" class="font-semibold text-blue-600"></span></p>
+      </div>
+      <div class="mt-4 md:mt-0 flex gap-3">
+        <button onclick="exportToPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium shadow transition">
+          📄 PDF রিপোর্ট
+        </button>
+        <button onclick="logoutUser()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium shadow transition">
+          লগআউট
+        </button>
+      </div>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow">
+        <p class="text-sm text-gray-600">মোট স্টক ইন</p>
+        <h3 id="card-total-in" class="text-xl font-bold text-blue-700">0</h3>
+      </div>
+      <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded shadow">
+        <p class="text-sm text-gray-600">মোট স্টক আউট</p>
+        <h3 id="card-total-out" class="text-xl font-bold text-green-700">0</h3>
+      </div>
+      <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded shadow">
+        <p class="text-sm text-gray-600">আনডেলিভারি মালামাল</p>
+        <h3 id="card-total-undelivered" class="text-xl font-bold text-amber-700">0</h3>
+      </div>
+      <div class="bg-purple-50 border-l-4 border-purple-500 p-4 rounded shadow">
+        <p class="text-sm text-gray-600">মোট স্টকের মূল্য</p>
+        <h3 id="card-total-value" class="text-xl font-bold text-purple-700">৳ 0.00</h3>
+      </div>
+    </div>
+
+    <!-- Grid: Product Setup & Stock Entry Forms -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      
+      <!-- 1. Product Setup Form -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-lg font-semibold text-gray-700 mb-4">প্রোডাক্ট ও মূল্য সেট করুন</h2>
+        <form id="productForm" onsubmit="addProduct(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">প্রোডাক্টের নাম</label>
+            <input type="text" id="newProductName" placeholder="যেমন: সিমেন্ট / রড" required class="w-full border rounded px-3 py-2 focus:outline-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">প্রতি ইউনিটের নির্ধারিত দাম (টাকা)</label>
+            <input type="number" id="newUnitPrice" placeholder="0.00" min="0" step="0.01" required class="w-full border rounded px-3 py-2 focus:outline-blue-500">
+          </div>
+          <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg font-medium shadow transition">
+            প্রোডাক্ট লিস্টে যোগ করুন
+          </button>
+        </form>
+
+        <div class="mt-6">
+          <h3 class="text-md font-semibold text-gray-700 mb-2">সংরক্ষিত প্রোডাক্ট ও দাম পরিবর্তন</h3>
+          <div class="max-h-40 overflow-y-auto border rounded p-2">
+            <table class="w-full text-left text-sm">
+              <tbody id="productListBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Daily Stock Transaction Form -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-lg font-semibold text-gray-700 mb-4">দৈনিক স্টক ইন / আউট এন্ট্রি</h2>
+        <form id="stockForm" onsubmit="addStockItem(event)" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">তারিখ</label>
+            <input type="date" id="date" required class="w-full border rounded px-3 py-2 focus:outline-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-600 mb-1">প্রোডাক্ট সিলেক্ট করুন</label>
+            <select id="selectProduct" onchange="updateSelectedPrice()" required class="w-full border rounded px-3 py-2 focus:outline-blue-500">
+              <option value="">-- প্রোডাক্ট বেছে নিন --</option>
+            </select>
+            <p class="text-xs text-purple-600 mt-1" id="displayUnitPrice">নির্ধারিত একক মূল্য: ৳ 0.00</p>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">স্টক ইন</label>
+              <input type="number" id="stockIn" min="0" value="0" class="w-full border rounded px-2 py-2 text-sm focus:outline-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">স্টক আউট</label>
+              <input type="number" id="stockOut" min="0" value="0" class="w-full border rounded px-2 py-2 text-sm focus:outline-blue-500">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-gray-600 mb-1">আনডেলিভারি</label>
+              <input type="number" id="undelivered" min="0" value="0" class="w-full border rounded px-2 py-2 text-sm focus:outline-blue-500">
+            </div>
+          </div>
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium shadow transition">
+            স্টক এন্ট্রি সেভ করুন
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+        <h2 class="text-lg font-semibold text-gray-700">দৈনিক স্টক এন্ট্রি ও হিসেব</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse" id="stockTable">
+          <thead>
+            <tr class="bg-gray-100 text-gray-600 text-sm">
+              <th class="p-3 border-b">তারিখ</th>
+              <th class="p-3 border-b">প্রোডাক্টের নাম</th>
+              <th class="p-3 border-b">একক মূল্য</th>
+              <th class="p-3 border-b">স্টক ইন</th>
+              <th class="p-3 border-b">স্টক আউট</th>
+              <th class="p-3 border-b">অবশিষ্ট স্টক</th>
+              <th class="p-3 border-b">আনডেলিভারি</th>
+              <th class="p-3 border-b">মোট মূল্য</th>
+              <th class="p-3 border-b text-center">অ্যাকশন</th>
+            </tr>
+          </thead>
+          <tbody id="stockTableBody" class="text-gray-700 text-sm"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // TODO: আপনার ফায়ারবেস কনফিগারেশন এখানে বসান (Firebase Console থেকে কপি করে)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let isSignUp = false;
+    let currentUserUid = null;
+    let products = [];
+    let stockData = [];
+
+    window.toggleAuthMode = function() {
+      isSignUp = !isSignUp;
+      document.getElementById('authTitle').innerText = isSignUp ? "সাইন আপ (নতুন একাউন্ট)" : "লগইন করুন";
+      document.getElementById('authSubmitBtn').innerText = isSignUp ? "সাইন আপ" : "লগইন";
+      document.getElementById('authToggleText').innerText = isSignUp ? "ইতিমধ্যে একাউন্ট আছে?" : "একাউন্ট নেই?";
+      document.getElementById('authToggleBtn').innerText = isSignUp ? "লগইন করুন" : "সাইন আপ করুন";
+    }
+
+    window.handleAuth = async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('authEmail').value;
+      const pass = document.getElementById('authPassword').value;
+
+      try {
+        if (isSignUp) {
+          await createUserWithEmailAndPassword(auth, email, pass);
+          alert("সফলভাবে সাইন আপ হয়েছে!");
+        } else {
+          await signInWithEmailAndPassword(auth, email, pass);
+        }
+      } catch (error) {
+        alert("ত্রুটি: " + error.message);
+      }
+    }
+
+    window.logoutUser = async function() {
+      await signOut(auth);
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUserUid = user.uid;
+        document.getElementById('userEmailDisplay').innerText = user.email;
+        document.getElementById('authContainer').classList.add('hidden');
+        document.getElementById('appContainer').classList.remove('hidden');
+        await loadUserData();
+      } else {
+        currentUserUid = null;
+        document.getElementById('authContainer').classList.remove('hidden');
+        document.getElementById('appContainer').classList.add('hidden');
+      }
+    });
+
+    async function saveUserData() {
+      if (!currentUserUid) return;
+      try {
+        await setDoc(doc(db, "users", currentUserUid), {
+          products: products,
+          stockData: stockData
+        });
+      } catch (err) {
+        console.error("ডেটা সেভ করতে সমস্যা হয়েছে:", err);
+      }
+    }
+
+    async function loadUserData() {
+      if (!currentUserUid) return;
+      try {
+        const docRef = doc(db, "users", currentUserUid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          products = data.products || [];
+          stockData = data.stockData || [];
+        } else {
+          products = [];
+          stockData = [];
+        }
+        renderProducts();
+        renderTable();
+      } catch (err) {
+        console.error("ডেটা লোড করতে সমস্যা হয়েছে:", err);
+      }
+    }
+
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+
+    window.renderProducts = function() {
+      const select = document.getElementById('selectProduct');
+      const productListBody = document.getElementById('productListBody');
+      select.innerHTML = '<option value="">-- প্রোডাক্ট বেছে নিন --</option>';
+      productListBody.innerHTML = '';
+
+      products.forEach((prod, index) => {
+        const option = document.createElement('option');
+        option.value = prod.name;
+        option.textContent = `${prod.name} (৳${prod.price})`;
+        select.appendChild(option);
+
+        const row = `
+          <tr class="border-b">
+            <td class="py-2 font-medium">${prod.name}</td>
+            <td class="py-2 text-gray-600">৳${prod.price}</td>
+            <td class="py-2 text-right">
+              <button onclick="editProductPrice(${index})" class="text-blue-600 hover:underline mr-2 text-xs">দাম পরিবর্তন</button>
+              <button onclick="deleteProduct(${index})" class="text-red-500 hover:underline text-xs">ডিলিট</button>
+            </td>
+          </tr>
+        `;
+        productListBody.innerHTML += row;
+      });
+      saveUserData();
+    }
+
+    window.addProduct = function(e) {
+      e.preventDefault();
+      const name = document.getElementById('newProductName').value.trim();
+      const price = parseFloat(document.getElementById('newUnitPrice').value);
+
+      const existing = products.find(p => p.name === name);
+      if (existing) {
+        alert('এই নামের প্রোডাক্ট ইতিমধ্যে আছে!');
+        return;
+      }
+
+      products.push({ name, price });
+      renderProducts();
+      document.getElementById('productForm').reset();
+    }
+
+    window.editProductPrice = function(index) {
+      const newPriceStr = prompt(`"${products[index].name}" এর নতুন একক মূল্য লিখুন:`, products[index].price);
+      if (newPriceStr !== null) {
+        const newPrice = parseFloat(newPriceStr);
+        if (!isNaN(newPrice) && newPrice >= 0) {
+          products[index].price = newPrice;
+          renderProducts();
+          renderTable();
+        } else {
+          alert('দয়া করে সঠিক সংখ্যা লিখুন।');
+        }
+      }
+    }
+
+    window.deleteProduct = function(index) {
+      if (confirm('এই প্রোডাক্টটি মুছে ফেলতে চান?')) {
+        products.splice(index, 1);
+        renderProducts();
+      }
+    }
+
+    window.updateSelectedPrice = function() {
+      const selectedName = document.getElementById('selectProduct').value;
+      const found = products.find(p => p.name === selectedName);
+      if (found) {
+        document.getElementById('displayUnitPrice').innerText = `নির্ধারিত একক মূল্য: ৳ ${found.price.toFixed(2)}`;
+      } else {
+        document.getElementById('displayUnitPrice').innerText = `নির্ধারিত একক মূল্য: ৳ 0.00`;
+      }
+    }
+
+    window.addStockItem = function(e) {
+      e.preventDefault();
+      const productName = document.getElementById('selectProduct').value;
+      const found = products.find(p => p.name === productName);
+      
+      if (!found) {
+        alert('দয়া করে সঠিক প্রোডাক্ট সিলেক্ট করুন।');
+        return;
+      }
+
+      const newItem = {
+        date: document.getElementById('date').value,
+        productName: productName,
+        unitPrice: found.price,
+        stockIn: parseInt(document.getElementById('stockIn').value) || 0,
+        stockOut: parseInt(document.getElementById('stockOut').value) || 0,
+        undelivered: parseInt(document.getElementById('undelivered').value) || 0,
+      };
+
+      stockData.push(newItem);
+      renderTable();
+      
+      document.getElementById('stockIn').value = 0;
+      document.getElementById('stockOut').value = 0;
+      document.getElementById('undelivered').value = 0;
+    }
+
+    window.deleteStockItem = function(index) {
+      if (confirm('এই এন্ট্রিটি মুছে ফেলতে চান?')) {
+        stockData.splice(index, 1);
+        renderTable();
+      }
+    }
+
+    window.renderTable = function() {
+      const tbody = document.getElementById('stockTableBody');
+      tbody.innerHTML = '';
+
+      let totalIn = 0;
+      let totalOut = 0;
+      let totalUndelivered = 0;
+      let grandTotalValue = 0;
+
+      stockData.forEach((item, index) => {
+        const remainingStock = item.stockIn - item.stockOut;
+        const totalValue = remainingStock * item.unitPrice;
+
+        totalIn += item.stockIn;
+        totalOut += item.stockOut;
+        totalUndelivered += item.undelivered;
+        grandTotalValue += totalValue;
+
+        const row = `
+          <tr class="border-b hover:bg-gray-50">
+            <td class="p-3">${item.date}</td>
+            <td class="p-3 font-medium">${item.productName}</td>
+            <td class="p-3">৳ ${item.unitPrice.toFixed(2)}</td>
+            <td class="p-3 text-blue-600 font-semibold">${item.stockIn}</td>
+            <td class="p-3 text-green-600 font-semibold">${item.stockOut}</td>
+            <td class="p-3 font-bold">${remainingStock}</td>
+            <td class="p-3 text-amber-600 font-semibold">${item.undelivered}</td>
+            <td class="p-3 font-semibold text-purple-700">৳ ${totalValue.toFixed(2)}</td>
+            <td class="p-3 text-center">
+              <button onclick="deleteStockItem(${index})" class="text-red-500 hover:text-red-700 font-medium text-xs">মুছে ফেলুন</button>
+            </td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+
+      document.getElementById('card-total-in').innerText = totalIn;
+      document.getElementById('card-total-out').innerText = totalOut;
+      document.getElementById('card-total-undelivered').innerText = totalUndelivered;
+      document.getElementById('card-total-value').innerText = `৳ ${grandTotalValue.toFixed(2)}`;
+
+      saveUserData();
+    }
+
+    window.exportToPDF = function() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(14);
+      doc.text("Stock Management Daily Report", 14, 15);
+      doc.setFontSize(10);
+      doc.text(`Date: ${new Date().toISOString().split('T')[0]}`, 14, 22);
+
+      const tableColumn = ["Date", "Product", "Price", "In", "Out", "Rem", "Undeliv", "Total Value"];
+      const tableRows = [];
+
+      stockData.forEach(item => {
+        const remaining = item.stockIn - item.stockOut;
+        const totalVal = remaining * item.unitPrice;
+        tableRows.push([
+          item.date,
+          item.productName,
+          `TK ${item.unitPrice}`,
+          item.stockIn,
+          item.stockOut,
+          remaining,
+          item.undelivered,
+          `TK ${totalVal.toFixed(2)}`
+        ]);
+      });
+
+      doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: 28,
+        theme: 'grid'
+      });
+
+      doc.save(`Stock_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+    }
+  </script>
+</body>
+</html>
