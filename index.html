@@ -81,7 +81,7 @@
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
           <div>
             <h2 class="text-2xl font-black text-slate-900">বর্তমান স্টক ও মূল্য</h2>
-            <p class="text-sm text-slate-500">আপনার স্টকে থাকা বর্তমান মোট প্রোডাক্ট ও মূল্যের বিবরণ (বস্তা ও পলি ফরম্যাটে)</p>
+            <p class="text-sm text-slate-500">আপনার স্টকে থাকা বর্তমান মোট প্রোডাক্ট ও মূল্যের বিবরণ (B/P ফরম্যাটে)</p>
           </div>
           <button onclick="exportCurrentStockPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm shadow transition flex items-center gap-2">
             📄 পিডিএফ রিপোর্ট
@@ -276,7 +276,7 @@
     let isSignUp = false;
     let currentUserUid = null;
     let products = [];
-    let transactions = []; // { id, type, date, productName, totalPoly }
+    let transactions = [];
 
     window.toggleAuthMode = function() {
       isSignUp = !isSignUp;
@@ -457,8 +457,8 @@
       const prefix = type === 'undeliv' ? 'undeliv' : type;
       const date = document.getElementById(`${prefix}Date`).value;
       const productName = document.getElementById(`${prefix}Product`).value;
-      const boxes = parseInt(document.getElementById(`${prefix}Box`).value) || 0;
-      const polys = parseInt(document.getElementById(`${prefix}Poly`).value) || 0;
+      const inputBoxes = parseInt(document.getElementById(`${prefix}Box`).value) || 0;
+      const inputPolys = parseInt(document.getElementById(`${prefix}Poly`).value) || 0;
 
       const prod = products.find(p => p.name === productName);
       if(!prod) {
@@ -466,10 +466,20 @@
         return;
       }
 
-      // Convert boxes and polys into total poly count automatically
-      const totalPoly = (boxes * prod.polyPerBox) + polys;
+      // Automatically convert total polys into boxes and remaining polys
+      const rawTotalPoly = (inputBoxes * prod.polyPerBox) + inputPolys;
+      const calculatedBoxes = Math.floor(rawTotalPoly / prod.polyPerBox);
+      const calculatedPolys = rawTotalPoly % prod.polyPerBox;
 
-      transactions.push({ id: Date.now(), type, date, productName, totalPoly });
+      transactions.push({ 
+        id: Date.now(), 
+        type, 
+        date, 
+        productName, 
+        totalPoly: rawTotalPoly,
+        boxes: calculatedBoxes,
+        polys: calculatedPolys
+      });
       
       document.getElementById(`${prefix}Box`).value = 0;
       document.getElementById(`${prefix}Poly`).value = 0;
@@ -484,12 +494,12 @@
       }
     }
 
-    function formatBoxPoly(polyCount, polyPerBox) {
+    function formatBP(polyCount, polyPerBox) {
       const boxes = Math.floor(polyCount / polyPerBox);
       const polys = polyCount % polyPerBox;
-      if (boxes > 0 && polys > 0) return `${boxes} বস্তা ${polys} পলি (${polyCount} পলি)`;
-      if (boxes > 0) return `${boxes} বস্তা (${polyCount} পলি)`;
-      return `${polys} পলি`;
+      if (boxes > 0 && polys > 0) return `${boxes}B/${polys}P`;
+      if (boxes > 0) return `${boxes}B`;
+      return `${polys}P`;
     }
 
     window.renderTransactionsTable = function(type) {
@@ -500,13 +510,13 @@
       transactions.filter(t => t.type === type).forEach(t => {
         const prod = products.find(p => p.name === t.productName);
         const polyPerBox = prod ? prod.polyPerBox : 1;
-        const displayQty = formatBoxPoly(t.totalPoly, polyPerBox);
+        const displayQty = formatBP(t.totalPoly, polyPerBox);
 
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50">
             <td class="p-4">${t.date}</td>
             <td class="p-4 font-bold text-slate-800">${t.productName}</td>
-            <td class="p-4 font-semibold text-blue-600">${displayQty}</td>
+            <td class="p-4 font-semibold text-blue-600">${displayQty} (${t.totalPoly} পলি)</td>
             <td class="p-4 text-center"><button onclick="deleteTransaction(${t.id})" class="text-red-500 font-semibold text-xs">মুছে ফেলুন</button></td>
           </tr>
         `;
@@ -534,10 +544,10 @@
         const polyPrice = prod.boxPrice / prod.polyPerBox;
         const totalValue = (remainingStock + totalUndeliv) * polyPrice;
 
-        const displayIn = formatBoxPoly(totalIn, prod.polyPerBox);
-        const displayOut = formatBoxPoly(totalOut, prod.polyPerBox);
-        const displayUndeliv = formatBoxPoly(totalUndeliv, prod.polyPerBox);
-        const displayRem = formatBoxPoly(Math.max(0, remainingStock), prod.polyPerBox);
+        const displayIn = formatBP(totalIn, prod.polyPerBox);
+        const displayOut = formatBP(totalOut, prod.polyPerBox);
+        const displayUndeliv = formatBP(totalUndeliv, prod.polyPerBox);
+        const displayRem = formatBP(Math.max(0, remainingStock), prod.polyPerBox);
 
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50">
@@ -575,10 +585,10 @@
 
         rows.push([
           prod.name, 
-          formatBoxPoly(inQ, prod.polyPerBox), 
-          formatBoxPoly(outQ, prod.polyPerBox), 
-          formatBoxPoly(undelivQ, prod.polyPerBox), 
-          formatBoxPoly(rem, prod.polyPerBox), 
+          formatBP(inQ, prod.polyPerBox), 
+          formatBP(outQ, prod.polyPerBox), 
+          formatBP(undelivQ, prod.polyPerBox), 
+          formatBP(rem, prod.polyPerBox), 
           `TK ${val.toFixed(2)}`
         ]);
       });
@@ -592,7 +602,7 @@
 
       let finalY = doc.lastAutoTable.finalY || 30;
       doc.setFontSize(11);
-      doc.text(`Subtotal / Grand Total Value: TK ${grandTotalValue.toFixed(2)}`, 14, finalY + 12);
+      doc.text(`Subtotal: TK ${grandTotalValue.toFixed(2)}`, 14, finalY + 12);
 
       doc.save(`Current_Stock_Report_${todayStr}.pdf`);
     }
@@ -606,7 +616,7 @@
       transactions.filter(t => t.type === type).forEach(t => {
         const prod = products.find(p => p.name === t.productName);
         const polyPerBox = prod ? prod.polyPerBox : 1;
-        rows.push([t.date, t.productName, formatBoxPoly(t.totalPoly, polyPerBox)]);
+        rows.push([t.date, t.productName, formatBP(t.totalPoly, polyPerBox)]);
       });
 
       doc.autoTable({
