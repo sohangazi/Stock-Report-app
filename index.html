@@ -12,7 +12,7 @@
 </head>
 <body class="bg-gray-100 font-sans p-4 md:p-8">
 
-  <!-- AUTH SECTION (Login / Signup) -->
+  <!-- AUTH SECTION -->
   <div id="authContainer" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md mt-20">
     <h2 id="authTitle" class="text-2xl font-bold text-center text-gray-800 mb-6">লগইন করুন</h2>
     <form id="authForm" onsubmit="handleAuth(event)" class="space-y-4">
@@ -34,7 +34,7 @@
     </p>
   </div>
 
-  <!-- MAIN APP SECTION (Hidden until logged in) -->
+  <!-- MAIN APP SECTION -->
   <div id="appContainer" class="max-w-6xl mx-auto hidden">
     <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-lg shadow-md mb-6">
@@ -43,41 +43,110 @@
         <p class="text-sm text-gray-500">লগইনকৃত ইউজার: <span id="userEmailDisplay" class="font-semibold text-blue-600"></span></p>
       </div>
       <div class="mt-4 md:mt-0 flex gap-3">
-        <button onclick="exportToPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium shadow transition">
-          📄 PDF রিপোর্ট
-        </button>
         <button onclick="logoutUser()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium shadow transition">
           লগআউট
         </button>
       </div>
     </div>
 
-    <!-- Overview Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-      <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow">
-        <p class="text-sm text-gray-600">মোট স্টক ইন</p>
-        <h3 id="card-total-in" class="text-xl font-bold text-blue-700">0</h3>
+    <!-- Navigation Tabs -->
+    <div class="flex border-b border-gray-300 mb-6">
+      <button onclick="switchTab('reportTab')" id="btnReportTab" class="py-2 px-6 font-semibold text-blue-600 border-b-2 border-blue-600 focus:outline-none">
+        📊 স্টক রিপোর্ট ও এন্ট্রি (১ম মেনু)
+      </button>
+      <button onclick="switchTab('productTab')" id="btnProductTab" class="py-2 px-6 font-semibold text-gray-500 hover:text-blue-600 focus:outline-none">
+        📦 প্রোডাক্ট ম্যানেজমেন্ট (২য় মেনু)
+      </button>
+    </div>
+
+    <!-- TAB 1: REPORT & STOCK ENTRY -->
+    <div id="reportTabContent" class="space-y-6">
+      <!-- Overview Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded shadow">
+          <p class="text-sm text-gray-600">মোট স্টক ইন</p>
+          <h3 id="card-total-in" class="text-xl font-bold text-blue-700">0</h3>
+        </div>
+        <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded shadow">
+          <p class="text-sm text-gray-600">মোট স্টক আউট</p>
+          <h3 id="card-total-out" class="text-xl font-bold text-green-700">0</h3>
+        </div>
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded shadow">
+          <p class="text-sm text-gray-600">আনডেলিভারি মালামাল</p>
+          <h3 id="card-total-undelivered" class="text-xl font-bold text-amber-700">0</h3>
+        </div>
+        <div class="bg-purple-50 border-l-4 border-purple-500 p-4 rounded shadow">
+          <p class="text-sm text-gray-600">মোট স্টকের মূল্য (আনডেলিভারি সহ)</p>
+          <h3 id="card-total-value" class="text-xl font-bold text-purple-700">৳ 0.00</h3>
+        </div>
       </div>
-      <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded shadow">
-        <p class="text-sm text-gray-600">মোট স্টক আউট</p>
-        <h3 id="card-total-out" class="text-xl font-bold text-green-700">0</h3>
+
+      <!-- PDF Export & Action Bar -->
+      <div class="flex justify-between items-center bg-white p-4 rounded-lg shadow-md">
+        <h2 class="text-lg font-semibold text-gray-700">দৈনিক স্টক এন্ট্রি ও হিসেব</h2>
+        <button onclick="exportToPDF()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium shadow transition flex items-center gap-2">
+          📄 প্রতিদিনের রিপোর্ট PDF সেভ করুন
+        </button>
       </div>
-      <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded shadow">
-        <p class="text-sm text-gray-600">আনডেলিভারি মালামাল</p>
-        <h3 id="card-total-undelivered" class="text-xl font-bold text-amber-700">0</h3>
+
+      <!-- Daily Entry Form -->
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h3 class="text-md font-semibold text-gray-700 mb-4">নতুন স্টক ইন / আউট এন্ট্রি করুন</h3>
+        <form id="stockForm" onsubmit="addStockItem(event)" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">তারিখ</label>
+            <input type="date" id="date" required class="w-full border rounded px-2 py-2 text-sm focus:outline-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">প্রোডাক্ট সিলেক্ট করুন</label>
+            <select id="selectProduct" onchange="updateSelectedPrice()" required class="w-full border rounded px-2 py-2 text-sm focus:outline-blue-500">
+              <option value="">-- বাছুন --</option>
+            </select>
+            <p class="text-xs text-purple-600 mt-1" id="displayUnitPrice">মূল্য: ৳ 0</p>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">স্টক ইন (+)</label>
+            <input type="number" id="stockIn" min="0" value="0" class="w-full border rounded px-2 py-2 text-sm focus:outline-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-600 mb-1">স্টক আউট (-)</label>
+            <input type="number" id="stockOut" min="0" value="0" class="w-full border rounded px-2 py-2 text-sm focus:outline-blue-500">
+          </div>
+          <div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm font-medium shadow transition">
+              এন্ট্রি যোগ করুন
+            </button>
+          </div>
+        </form>
       </div>
-      <div class="bg-purple-50 border-l-4 border-purple-500 p-4 rounded shadow">
-        <p class="text-sm text-gray-600">মোট স্টকের মূল্য</p>
-        <h3 id="card-total-value" class="text-xl font-bold text-purple-700">৳ 0.00</h3>
+
+      <!-- Data Table -->
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse" id="stockTable">
+            <thead>
+              <tr class="bg-gray-100 text-gray-600 text-sm">
+                <th class="p-3 border-b">তারিখ</th>
+                <th class="p-3 border-b">প্রোডাক্টের নাম</th>
+                <th class="p-3 border-b">একক মূল্য</th>
+                <th class="p-3 border-b">স্টক ইন</th>
+                <th class="p-3 border-b">স্টক আউট</th>
+                <th class="p-3 border-b">অবশিষ্ট স্টক</th>
+                <th class="p-3 border-b">আনডেলিভারি</th>
+                <th class="p-3 border-b">মোট মূল্য</th>
+                <th class="p-3 border-b text-center">অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody id="stockTableBody" class="text-gray-700 text-sm"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
-    <!-- Grid: Product Setup & Stock Entry Forms -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-      
-      <!-- 1. Product Setup Form -->
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-lg font-semibold text-gray-700 mb-4">প্রোডাক্ট ও মূল্য সেট করুন</h2>
+    <!-- TAB 2: PRODUCT MANAGEMENT -->
+    <div id="productTabContent" class="space-y-6 hidden">
+      <div class="bg-white p-6 rounded-lg shadow-md max-w-xl mx-auto">
+        <h2 class="text-lg font-semibold text-gray-700 mb-4">নতুন প্রোডাক্ট ও মূল্য সেট করুন</h2>
         <form id="productForm" onsubmit="addProduct(event)" class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-600 mb-1">প্রোডাক্টের নাম</label>
@@ -91,90 +160,35 @@
             প্রোডাক্ট লিস্টে যোগ করুন
           </button>
         </form>
+      </div>
 
-        <div class="mt-6">
-          <h3 class="text-md font-semibold text-gray-700 mb-2">সংরক্ষিত প্রোডাক্ট ও দাম পরিবর্তন</h3>
-          <div class="max-h-40 overflow-y-auto border rounded p-2">
-            <table class="w-full text-left text-sm">
-              <tbody id="productListBody"></tbody>
-            </table>
-          </div>
+      <div class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
+        <h3 class="text-md font-semibold text-gray-700 mb-4">সংরক্ষিত প্রোডাক্ট তালিকা ও দাম পরিবর্তন</h3>
+        <div class="overflow-y-auto max-h-96 border rounded">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-gray-100 text-gray-600">
+              <tr>
+                <th class="p-3 border-b">প্রোডাক্টের নাম</th>
+                <th class="p-3 border-b">একক মূল্য</th>
+                <th class="p-3 border-b text-right">অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody id="productListBody"></tbody>
+          </table>
         </div>
-      </div>
-
-      <!-- 2. Daily Stock Transaction Form -->
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-lg font-semibold text-gray-700 mb-4">দৈনিক স্টক ইন / আউট এন্ট্রি</h2>
-        <form id="stockForm" onsubmit="addStockItem(event)" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-600 mb-1">তারিখ</label>
-            <input type="date" id="date" required class="w-full border rounded px-3 py-2 focus:outline-blue-500">
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-600 mb-1">প্রোডাক্ট সিলেক্ট করুন</label>
-            <select id="selectProduct" onchange="updateSelectedPrice()" required class="w-full border rounded px-3 py-2 focus:outline-blue-500">
-              <option value="">-- প্রোডাক্ট বেছে নিন --</option>
-            </select>
-            <p class="text-xs text-purple-600 mt-1" id="displayUnitPrice">নির্ধারিত একক মূল্য: ৳ 0.00</p>
-          </div>
-          <div class="grid grid-cols-3 gap-2">
-            <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">স্টক ইন</label>
-              <input type="number" id="stockIn" min="0" value="0" class="w-full border rounded px-2 py-2 text-sm focus:outline-blue-500">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">স্টক আউট</label>
-              <input type="number" id="stockOut" min="0" value="0" class="w-full border rounded px-2 py-2 text-sm focus:outline-blue-500">
-            </div>
-            <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1">আনডেলিভারি</label>
-              <input type="number" id="undelivered" min="0" value="0" class="w-full border rounded px-2 py-2 text-sm focus:outline-blue-500">
-            </div>
-          </div>
-          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium shadow transition">
-            স্টক এন্ট্রি সেভ করুন
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Data Table -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-      <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
-        <h2 class="text-lg font-semibold text-gray-700">দৈনিক স্টক এন্ট্রি ও হিসেব</h2>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse" id="stockTable">
-          <thead>
-            <tr class="bg-gray-100 text-gray-600 text-sm">
-              <th class="p-3 border-b">তারিখ</th>
-              <th class="p-3 border-b">প্রোডাক্টের নাম</th>
-              <th class="p-3 border-b">একক মূল্য</th>
-              <th class="p-3 border-b">স্টক ইন</th>
-              <th class="p-3 border-b">স্টক আউট</th>
-              <th class="p-3 border-b">অবশিষ্ট স্টক</th>
-              <th class="p-3 border-b">আনডেলিভারি</th>
-              <th class="p-3 border-b">মোট মূল্য</th>
-              <th class="p-3 border-b text-center">অ্যাকশন</th>
-            </tr>
-          </thead>
-          <tbody id="stockTableBody" class="text-gray-700 text-sm"></tbody>
-        </table>
       </div>
     </div>
   </div>
 
-  <!-- Firebase SDKs & App Logic -->
+  <!-- Firebase Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Your Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyA3RaVc2-uH_fjy-HMJKvHP1g6bjfVQXdA",
       authDomain: "stock-report-17f51.firebaseapp.com",
-      databaseURL: "https://stock-report-17f51-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "stock-report-17f51",
       storageBucket: "stock-report-17f51.firebasestorage.app",
       messagingSenderId: "2417365518",
@@ -242,7 +256,7 @@
           stockData: stockData
         });
       } catch (err) {
-        console.error("ডেটা সেভ করতে সমস্যা হয়েছে:", err);
+        console.error("ডেটা সেভ করতে সমস্যা:", err);
       }
     }
 
@@ -262,16 +276,35 @@
         renderProducts();
         renderTable();
       } catch (err) {
-        console.error("ডেটা লোড করতে সমস্যা হয়েছে:", err);
+        console.error("ডেটা লোড করতে সমস্যা:", err);
       }
     }
 
     document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
+    window.switchTab = function(tabName) {
+      const reportTab = document.getElementById('reportTabContent');
+      const productTab = document.getElementById('productTabContent');
+      const btnReport = document.getElementById('btnReportTab');
+      const btnProduct = document.getElementById('btnProductTab');
+
+      if (tabName === 'reportTab') {
+        reportTab.classList.remove('hidden');
+        productTab.classList.add('hidden');
+        btnReport.className = "py-2 px-6 font-semibold text-blue-600 border-b-2 border-blue-600 focus:outline-none";
+        btnProduct.className = "py-2 px-6 font-semibold text-gray-500 hover:text-blue-600 focus:outline-none";
+      } else {
+        reportTab.classList.add('hidden');
+        productTab.classList.remove('hidden');
+        btnProduct.className = "py-2 px-6 font-semibold text-blue-600 border-b-2 border-blue-600 focus:outline-none";
+        btnReport.className = "py-2 px-6 font-semibold text-gray-500 hover:text-blue-600 focus:outline-none";
+      }
+    }
+
     window.renderProducts = function() {
       const select = document.getElementById('selectProduct');
       const productListBody = document.getElementById('productListBody');
-      select.innerHTML = '<option value="">-- প্রোডাক্ট বেছে নিন --</option>';
+      select.innerHTML = '<option value="">-- বাছুন --</option>';
       productListBody.innerHTML = '';
 
       products.forEach((prod, index) => {
@@ -281,12 +314,12 @@
         select.appendChild(option);
 
         const row = `
-          <tr class="border-b">
-            <td class="py-2 font-medium">${prod.name}</td>
-            <td class="py-2 text-gray-600">৳${prod.price}</td>
-            <td class="py-2 text-right">
-              <button onclick="editProductPrice(${index})" class="text-blue-600 hover:underline mr-2 text-xs">দাম পরিবর্তন</button>
-              <button onclick="deleteProduct(${index})" class="text-red-500 hover:underline text-xs">ডিলিট</button>
+          <tr class="border-b hover:bg-gray-50">
+            <td class="p-3 font-medium">${prod.name}</td>
+            <td class="p-3 text-gray-600">৳${prod.price}</td>
+            <td class="p-3 text-right">
+              <button onclick="editProductPrice(${index})" class="text-blue-600 hover:underline mr-3 text-xs font-semibold">দাম পরিবর্তন</button>
+              <button onclick="deleteProduct(${index})" class="text-red-500 hover:underline text-xs font-semibold">ডিলিট</button>
             </td>
           </tr>
         `;
@@ -309,6 +342,7 @@
       products.push({ name, price });
       renderProducts();
       document.getElementById('productForm').reset();
+      alert('প্রোডাক্ট সফলভাবে যোগ হয়েছে!');
     }
 
     window.editProductPrice = function(index) {
@@ -336,12 +370,13 @@
       const selectedName = document.getElementById('selectProduct').value;
       const found = products.find(p => p.name === selectedName);
       if (found) {
-        document.getElementById('displayUnitPrice').innerText = `নির্ধারিত একক মূল্য: ৳ ${found.price.toFixed(2)}`;
+        document.getElementById('displayUnitPrice').innerText = `মূল্য: ৳ ${found.price}`;
       } else {
-        document.getElementById('displayUnitPrice').innerText = `নির্ধারিত একক মূল্য: ৳ 0.00`;
+        document.getElementById('displayUnitPrice').innerText = `মূল্য: ৳ 0`;
       }
     }
 
+    // Add Stock Transaction with Undelivered Adjustment Logic
     window.addStockItem = function(e) {
       e.preventDefault();
       const productName = document.getElementById('selectProduct').value;
@@ -352,13 +387,37 @@
         return;
       }
 
+      let stockInQty = parseInt(document.getElementById('stockIn').value) || 0;
+      let stockOutQty = parseInt(document.getElementById('stockOut').value) || 0;
+
+      // Check existing undelivered quantity for this product
+      let currentUndelivered = 0;
+      stockData.forEach(item => {
+        if (item.productName === productName) {
+          currentUndelivered += item.undelivered;
+        }
+      });
+
+      let newUndelivered = 0;
+      if (stockInQty > 0 && currentUndelivered > 0) {
+        if (stockInQty >= currentUndelivered) {
+          stockInQty -= currentUndelivered;
+          newUndelivered = 0;
+        } else {
+          newUndelivered = currentUndelivered - stockInQty;
+          stockInQty = 0;
+        }
+      } else {
+        newUndelivered = currentUndelivered;
+      }
+
       const newItem = {
         date: document.getElementById('date').value,
         productName: productName,
         unitPrice: found.price,
-        stockIn: parseInt(document.getElementById('stockIn').value) || 0,
-        stockOut: parseInt(document.getElementById('stockOut').value) || 0,
-        undelivered: parseInt(document.getElementById('undelivered').value) || 0,
+        stockIn: stockInQty,
+        stockOut: stockOutQty,
+        undelivered: newUndelivered,
       };
 
       stockData.push(newItem);
@@ -366,7 +425,6 @@
       
       document.getElementById('stockIn').value = 0;
       document.getElementById('stockOut').value = 0;
-      document.getElementById('undelivered').value = 0;
     }
 
     window.deleteStockItem = function(index) {
@@ -387,7 +445,8 @@
 
       stockData.forEach((item, index) => {
         const remainingStock = item.stockIn - item.stockOut;
-        const totalValue = remainingStock * item.unitPrice;
+        // Total value includes both remaining stock value and undelivered value
+        const totalValue = (remainingStock + item.undelivered) * item.unitPrice;
 
         totalIn += item.stockIn;
         totalOut += item.stockOut;
@@ -430,12 +489,23 @@
       doc.setFontSize(10);
       doc.text(`Date: ${new Date().toISOString().split('T')[0]}`, 14, 22);
 
+      let totalInSum = 0;
+      let totalOutSum = 0;
+      let totalUndelivSum = 0;
+      let grandValSum = 0;
+
       const tableColumn = ["Date", "Product", "Price", "In", "Out", "Rem", "Undeliv", "Total Value"];
       const tableRows = [];
 
       stockData.forEach(item => {
         const remaining = item.stockIn - item.stockOut;
-        const totalVal = remaining * item.unitPrice;
+        const totalVal = (remaining + item.undelivered) * item.unitPrice;
+
+        totalInSum += item.stockIn;
+        totalOutSum += item.stockOut;
+        totalUndelivSum += item.undelivered;
+        grandValSum += totalVal;
+
         tableRows.push([
           item.date,
           item.productName,
@@ -454,6 +524,11 @@
         startY: 28,
         theme: 'grid'
       });
+
+      let finalY = doc.lastAutoTable.finalY || 30;
+      doc.setFontSize(11);
+      doc.text(`Total Stock In: ${totalInSum} | Total Out: ${totalOutSum} | Total Undelivered: ${totalUndelivSum}`, 14, finalY + 10);
+      doc.text(`Grand Total Stock Value (Including Undelivered): TK ${grandValSum.toFixed(2)}`, 14, finalY + 18);
 
       doc.save(`Stock_Report_${new Date().toISOString().split('T')[0]}.pdf`);
     }
