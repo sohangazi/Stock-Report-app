@@ -141,7 +141,7 @@
         </div>
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="bg-slate-50 text-slate-500 text-xs uppercase"><th class="p-4">তারিখ</th><th class="p-4">প্রোডাক্ট</th><th class="p-4">পরিমাণ</th><th class="p-4 text-center">অ্যাকশন</th></tr></thead>
+            <thead><tr class="bg-slate-50 text-slate-500 text-xs uppercase"><th class="p-4">তারিখ</th><th class="p-4">প্রোডাক্ট</th><th class="p-4">পরিমাণ</th><th class="p-4">মূল্য</th><th class="p-4 text-center">অ্যাকশন</th></tr></thead>
             <tbody id="tableInBody" class="divide-y divide-slate-100 text-sm"></tbody>
           </table>
         </div>
@@ -181,7 +181,7 @@
         </div>
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="bg-slate-50 text-slate-500 text-xs uppercase"><th class="p-4">তারিখ</th><th class="p-4">প্রোডাক্ট</th><th class="p-4">পরিমাণ</th><th class="p-4 text-center">অ্যাকশন</th></tr></thead>
+            <thead><tr class="bg-slate-50 text-slate-500 text-xs uppercase"><th class="p-4">তারিখ</th><th class="p-4">প্রোডাক্ট</th><th class="p-4">পরিমাণ</th><th class="p-4">মূল্য</th><th class="p-4 text-center">অ্যাকশন</th></tr></thead>
             <tbody id="tableOutBody" class="divide-y divide-slate-100 text-sm"></tbody>
           </table>
         </div>
@@ -221,7 +221,7 @@
         </div>
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <table class="w-full text-left border-collapse">
-            <thead><tr class="bg-slate-50 text-slate-500 text-xs uppercase"><th class="p-4">তারিখ</th><th class="p-4">প্রোডাক্ট</th><th class="p-4">পরিমাণ</th><th class="p-4 text-center">অ্যাকশন</th></tr></thead>
+            <thead><tr class="bg-slate-50 text-slate-500 text-xs uppercase"><th class="p-4">তারিখ</th><th class="p-4">প্রোডাক্ট</th><th class="p-4">পরিমাণ</th><th class="p-4">মূল্য</th><th class="p-4 text-center">অ্যাকশন</th></tr></thead>
             <tbody id="tableUndelivBody" class="divide-y divide-slate-100 text-sm"></tbody>
           </table>
         </div>
@@ -522,6 +522,8 @@
       transactions.filter(t => t.type === type && t.date === filterDate).forEach(t => {
         const prod = products.find(p => p.name === t.productName);
         const polyPerBox = prod ? prod.polyPerBox : 1;
+        const polyPrice = prod ? (prod.boxPrice / prod.polyPerBox) : 0;
+        const totalAmount = t.totalPoly * polyPrice;
         const displayQty = formatBP(t.totalPoly, polyPerBox);
 
         tbody.innerHTML += `
@@ -529,6 +531,7 @@
             <td class="p-4">${t.date}</td>
             <td class="p-4 font-bold text-slate-800">${t.productName}</td>
             <td class="p-4 font-semibold text-blue-600">${displayQty} (${t.totalPoly} পলি)</td>
+            <td class="p-4 font-semibold text-purple-600">৳${totalAmount.toFixed(2)}</td>
             <td class="p-4 text-center"><button onclick="deleteTransaction(${t.id})" class="text-red-500 font-semibold text-xs">মুছে ফেলুন</button></td>
           </tr>
         `;
@@ -561,7 +564,6 @@
         const displayUndeliv = formatBP(totalUndeliv, prod.polyPerBox);
         const displayRem = formatBP(remainingStock, prod.polyPerBox);
 
-        // Highlight row if stock drops below 0
         const rowBg = remainingStock < 0 ? 'bg-red-50 text-red-700 font-bold' : 'hover:bg-slate-50';
 
         tbody.innerHTML += `
@@ -630,19 +632,29 @@
       const doc = new jsPDF();
       doc.text(`${type.toUpperCase()} Stock Report (${filterDate})`, 14, 15);
 
+      let totalAmountSum = 0;
       const rows = [];
       transactions.filter(t => t.type === type && t.date === filterDate).forEach(t => {
         const prod = products.find(p => p.name === t.productName);
         const polyPerBox = prod ? prod.polyPerBox : 1;
-        rows.push([t.date, t.productName, formatBP(t.totalPoly, polyPerBox)]);
+        const polyPrice = prod ? (prod.boxPrice / prod.polyPerBox) : 0;
+        const totalAmount = t.totalPoly * polyPrice;
+        totalAmountSum += totalAmount;
+
+        rows.push([t.date, t.productName, formatBP(t.totalPoly, polyPerBox), `TK ${totalAmount.toFixed(2)}`]);
       });
 
       doc.autoTable({
-        head: [["Date", "Product", "Quantity"]],
+        head: [["Date", "Product", "Quantity", "Total Amount"]],
         body: rows,
         startY: 25,
         theme: 'grid'
       });
+
+      let finalY = doc.lastAutoTable.finalY || 30;
+      doc.setFontSize(11);
+      doc.text(`Total Amount for ${filterDate}: TK ${totalAmountSum.toFixed(2)}`, 14, finalY + 12);
+
       doc.save(`${type}_Report_${filterDate}.pdf`);
     }
   </script>
