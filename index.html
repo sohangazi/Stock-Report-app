@@ -104,6 +104,7 @@
               <tbody id="currentStockTableBody" class="text-slate-700 text-sm divide-y divide-slate-100"></tbody>
             </table>
           </div>
+          <div id="stockSummaryBox" class="p-6 bg-slate-50 border-t border-slate-100 flex flex-col items-end space-y-1 font-bold text-slate-800"></div>
         </div>
       </div>
 
@@ -478,7 +479,35 @@
         return;
       }
 
-      const rawTotalPoly = (inputBoxes * prod.polyPerBox) + inputPolys;
+      let rawTotalPoly = (inputBoxes * prod.polyPerBox) + inputPolys;
+
+      // If Stock In, automatically adjust and deduct from existing Undelivered quantity
+      if (type === 'in') {
+        let currentUndeliv = 0;
+        transactions.forEach(t => {
+          if (t.productName === productName && t.type === 'undeliv') {
+            currentUndeliv += t.totalPoly;
+          }
+          if (t.productName === productName && t.type === 'in' && t.adjustedUndeliv) {
+            currentUndeliv -= t.adjustedUndeliv;
+          }
+        });
+
+        let toDeduct = Math.min(rawTotalPoly, Math.max(0, currentUndeliv));
+        if (toDeduct > 0) {
+          // Add a negative undelivered transaction or tag this in transaction to absorb undelivered
+          transactions.push({
+            id: Date.now() + 1,
+            type: 'undeliv',
+            date: date,
+            productName: productName,
+            totalPoly: -toDeduct,
+            boxes: 0,
+            polys: 0
+          });
+        }
+      }
+
       const calculatedBoxes = Math.floor(rawTotalPoly / prod.polyPerBox);
       const calculatedPolys = rawTotalPoly % prod.polyPerBox;
 
@@ -506,6 +535,14 @@
     }
 
     function formatBP(polyCount, polyPerBox) {
+      if (polyCount < 0) {
+        const absVal = Math.abs(polyCount);
+        const boxes = Math.floor(absVal / polyPerBox);
+        const polys = absVal % polyPerBox;
+        if (boxes > 0 && polys > 0) return `-${boxes}B/${polys}P`;
+        if (boxes > 0) return `-${boxes}B`;
+        return `-${polys}P`;
+      }
       const boxes = Math.floor(polyCount / polyPerBox);
       const polys = polyCount % polyPerBox;
       if (boxes > 0 && polys > 0) return `${boxes}B/${polys}P`;
@@ -540,7 +577,11 @@
 
     window.renderCurrentStock = function() {
       const tbody = document.getElementById('currentStockTableBody');
+      const summaryBox = document.getElementById('stockSummaryBox');
       tbody.innerHTML = '';
+
+      let grandTotalValue = 0;
+      let grandTotalUndelivValue = 0;
 
       products.forEach(prod => {
         let totalIn = 0;
@@ -557,7 +598,12 @@
 
         const remainingStock = totalIn - totalOut;
         const polyPrice = prod.boxPrice / prod.polyPerBox;
-        const totalValue = (remainingStock + totalUndeliv) * polyPrice;
+        const stockValue = remainingStock * polyPrice;
+        const undelivValue = totalUndeliv * polyPrice;
+        const totalValue = stockValue + undelivValue;
+
+        grandTotalValue += stockValue;
+        grandTotalUndelivValue += undelivValue;
 
         const displayIn = formatBP(totalIn, prod.polyPerBox);
         const displayOut = formatBP(totalOut, prod.polyPerBox);
@@ -578,6 +624,12 @@
           </tr>
         `;
       });
+
+      summaryBox.innerHTML = `
+        <div>Subtotal (Stock Value): ৳ ${grandTotalValue.toFixed(2)}</div>
+        <div class="text-amber-600">Total Undelivered Amount: ৳ ${grandTotalUndelivValue.toFixed(2)}</div>
+        <div class="text-purple-700 border-t pt-1 mt-1">Grand Total: ৳ ${(grandTotalValue + grandTotalUndelivValue).toFixed(2)}</div>
+      `;
     }
 
     window.exportCurrentStockPDF = function() {
@@ -586,7 +638,9 @@
       doc.text("Current Stock Report", 14, 15);
       
       let grandTotalValue = 0;
+      let grandTotalUndelivValue = 0;
       const rows = [];
+
       products.forEach(prod => {
         let inQ = 0, outQ = 0, undelivQ = 0;
         transactions.forEach(t => {
@@ -597,8 +651,13 @@
           }
         });
         const rem = inQ - outQ;
-        const val = (rem + undelivQ) * (prod.boxPrice / prod.polyPerBox);
-        grandTotalValue += val;
+        const polyPrice = prod.boxPrice / prod.polyPerBox;
+        const stockVal = rem * polyPrice;
+        const undelivVal = undelivQ * polyPrice;
+        const totalVal = stockVal + undelivVal;
+
+        grandTotalValue += stockVal;
+        grandTotalUndelivValue += undelivVal;
 
         rows.push([
           prod.name, 
@@ -606,7 +665,7 @@
           formatBP(outQ, prod.polyPerBox), 
           formatBP(undelivQ, prod.polyPerBox), 
           formatBP(rem, prod.polyPerBox), 
-          `TK ${val.toFixed(2)}`
+          `TK ${totalVal.toFixed(2)}`
         ]);
       });
 
@@ -619,7 +678,9 @@
 
       let finalY = doc.lastAutoTable.finalY || 30;
       doc.setFontSize(11);
-      doc.text(`Subtotal: TK ${grandTotalValue.toFixed(2)}`, 14, finalY + 12);
+      doc.text(`Subtotal (Stock Value): TK ${grandTotalValue.toFixed(2)}`, 14, finalY + 10);
+      doc.text(`Total Undelivered Amount: TK ${grandTotalUndelivValue.toFixed(2)}`, 14, finalY + 18);
+      doc.text(`Grand Total: TK ${(grandTotalValue + grandTotalUndelivValue).toFixed(2)}`, 14, finalY + 26);
 
       doc.save(`Current_Stock_Report_${todayStr}.pdf`);
     }
